@@ -7,14 +7,18 @@ import re
 # print(a.get('al'))
 
 # a = '<span class="span01">15(4)</span>'
-a = ['15(4)','2(3)','44(33)']
-a_re = []
-b_re = []
-for i in a:
-    a_re.append(re.findall("\((.*?)\)",i)[0])
-    b_re.append(i[:i.index("(")])
-print(a_re)
-print(b_re)
+a = ['item1','item2']
+
+
+print(a)
+# a = ['15(4)','2(3)','44(33)']
+# a_re = []
+# b_re = []
+# for i in a:
+#     a_re.append(re.findall("\((.*?)\)",i)[0])
+#     b_re.append(i[:i.index("(")])
+# print(a_re)
+# print(b_re)
 
 # print(re.findall("\((.*?)\)",a))
 # print(a[:a.index("(")])

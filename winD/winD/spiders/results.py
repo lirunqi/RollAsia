@@ -1,6 +1,8 @@
 import scrapy
-from winD.items import Results
+from winD.items import Results,WindItem,RealTime
 import re
+import json
+import jsonpath
 
 class ResultsSpider(scrapy.Spider):
     name = 'results'
@@ -60,5 +62,51 @@ class ResultsSpider(scrapy.Spider):
         item['hf_guest_shoot']=guest_hf_data[0]
         item['guest_dshoot']=guest_hole_data[1]
         item['hf_guest_dshoot']=guest_hf_data[1]
-
         yield item
+
+        base_url = 'http://odds.gooooal.com/match/1777/r_1777'
+        item = WindItem()
+        for i in range(429, 433):
+            url = base_url + str(i) + '.json'
+            res = scrapy.Request(url, self.parse_realtime())
+            yield res
+
+    # 解析实时盘
+    def parse_realtime(self,response):
+        item = RealTime()
+        tmp_item = jsonpath.jsonpath(json.loads(response.text), '$.al[?(@.c==1001)][*]')
+        matchid = jsonpath.jsonpath(json.loads(response.text), '$.m.id')
+        # series = jsonpath.jsonpath(json.loads(response.text), '$.m.l.id')
+
+        for i in tmp_item[1][0]:
+            item['date_time'] = i['t']
+            item['realtime'] = i['rt']
+            item['matchid'] = matchid
+            item['compid'] = '1001'  # 皇冠
+            item['realtimeresult'] = str(i['hg']) + '-' + str(i['ag'])
+            item['home_odd'] = i['h']
+            item['guest_odd'] = i['a']
+            item['odd_term'] = i['p']
+            yield item
+
+        base_url = 'http://odds.gooooal.com/match/1777/h_1777'
+        item = WindItem()
+        for i in range(429, 433):
+            url = base_url + str(i) + '.json'
+            res = scrapy.Request(url, self.parse_cp)
+            yield res
+
+    def parse_cp(self,response):
+            tmp_item = jsonpath.jsonpath(json.loads(response.text), '$.al[?(@.c==1001)][*]')
+            matchid = jsonpath.jsonpath(json.loads(response.text), '$.m.id')
+            series = jsonpath.jsonpath(json.loads(response.text), '$.m.l.id')
+            item = WindItem()
+            for i in tmp_item[1][0]:
+                item['date_time'] = i['t']
+                item['matchid'] = matchid
+                item['series'] = series
+                item['compid'] = '1001'  # 皇冠
+                item['home_odd'] = i['h']
+                item['guest_odd'] = i['a']
+                item['odd_term'] = i['p']
+                yield item
